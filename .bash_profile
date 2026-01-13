@@ -7,6 +7,11 @@ export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}";
 
 eval "$(fzf --bash)"
 
+# Enable SSH hostname autocompletion
+if [ -f ~/.ssh-completion.bash ]; then
+    . ~/.ssh-completion.bash
+fi
+
 export EDITOR=vi
 export LC_ALL=C.UTF-8
 
