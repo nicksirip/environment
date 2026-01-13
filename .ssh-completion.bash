@@ -8,6 +8,7 @@
 # - Parses ~/.ssh/config and /etc/ssh/ssh_config
 # - Deduplicates hostnames and maintains order
 # - Filters out wildcard patterns (*, ?)
+# - Filters dangerous characters to prevent command injection
 # - Handles malformed or empty config files gracefully
 # - Easily extensible for custom config file locations
 #
@@ -23,6 +24,11 @@
 #
 # CUSTOMIZATION:
 # To parse additional SSH config files, modify the SSH_CONFIG_FILES array below
+#
+# SECURITY:
+# - Hostnames containing dangerous characters ($, `, ;, |, &, <, >, etc.) are filtered
+# - This prevents command injection attacks via malicious SSH config entries
+# - Only alphanumeric characters and .-_: are allowed in hostnames
 #
 # ASSUMPTIONS:
 # - SSH config files follow standard OpenSSH format
@@ -74,7 +80,18 @@ _parse_ssh_config() {
                     # Skip wildcard patterns (*, ?, brackets)
                     [[ "$host" == *[\*\?\[\]]* ]] && continue
                     
-                    # Skip if hostname contains only wildcards or is empty
+                    # Skip hostnames with potentially dangerous characters for security
+                    # Valid hostnames should only contain: alphanumeric, dash, dot, underscore, colon (for IPv6/ports)
+                    # This prevents command injection via $(), backticks, semicolons, pipes, redirects, etc.
+                    if [[ "$host" =~ [\$\`\;\|\&\(\)\{\}\<\>\\] ]]; then
+                        continue
+                    fi
+                    # Also skip hostnames with quotes or spaces
+                    if [[ "$host" == *[\'\"]* ]] || [[ "$host" == *[[:space:]]* ]]; then
+                        continue
+                    fi
+                    
+                    # Skip if hostname is empty
                     [[ -z "$host" ]] && continue
                     
                     # Deduplicate: only add if not seen before
