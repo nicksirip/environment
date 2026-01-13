@@ -65,6 +65,8 @@ _parse_ssh_config() {
                 
                 # Split multiple hostnames on the same line
                 # Disable glob expansion temporarily to prevent * and ? from expanding to filenames
+                # The 'local -' saves current shell options, 'set -f' disables globbing
+                # When the function returns, options are automatically restored
                 local -
                 set -f
                 for host in $host_entries; do
@@ -106,14 +108,12 @@ _ssh_hostname_completion() {
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
     
-    # Only provide hostname completion for the first argument after 'ssh'
-    # or after certain flags that take hostnames as arguments
+    # Don't provide hostname completion if the previous word is a flag that takes a non-hostname argument
+    # For example: -l (login name), -i (identity file), -F (config file), -o (option), -p (port)
     case "$prev" in
-        ssh|-l|-i|-F|-o|-p|-J)
-            # For -l, -i, -F, -o, -p flags, don't provide hostname completion
-            if [[ "$prev" != "ssh" ]]; then
-                return 0
-            fi
+        -l|-i|-F|-o|-p|-S|-W)
+            # These flags expect non-hostname arguments
+            return 0
             ;;
     esac
     
