@@ -53,8 +53,7 @@ declare -a SSH_CONFIG_FILES=(
 _parse_ssh_config() {
     local config_file
     local hostnames=()
-    # Use associative array for O(1) deduplication lookup
-    local -A seen_hosts
+    local seen_hosts=()
     
     # Iterate through all configured SSH config files
     for config_file in "${SSH_CONFIG_FILES[@]}"; do
@@ -72,9 +71,8 @@ _parse_ssh_config() {
                 
                 # Split multiple hostnames on the same line
                 # Disable glob expansion temporarily to prevent * and ? from expanding to filenames
-                # The 'local -' saves current shell options, 'set -f' disables globbing
-                # When the function returns, options are automatically restored
-                local -
+                # Save current glob setting and restore it after processing
+                local oldglob=$(shopt -p nullglob failglob 2>/dev/null; shopt -po noglob)
                 set -f
                 for host in $host_entries; do
                     # Skip wildcard patterns (*, ?, brackets)
@@ -98,12 +96,21 @@ _parse_ssh_config() {
                     [[ -z "$host" ]] && continue
                     
                     # Deduplicate: only add if not seen before
-                    # Using associative array for O(1) lookup instead of O(n) linear search
-                    if [[ -z "${seen_hosts[$host]:-}" ]]; then
-                        seen_hosts[$host]=1
+                    local already_seen=0
+                    for seen in "${seen_hosts[@]}"; do
+                        if [[ "$seen" == "$host" ]]; then
+                            already_seen=1
+                            break
+                        fi
+                    done
+                    
+                    if [[ $already_seen -eq 0 ]]; then
+                        seen_hosts+=("$host")
                         hostnames+=("$host")
                     fi
                 done
+                # Restore glob settings
+                eval "$oldglob"
             fi
         done < "$config_file"
     done
