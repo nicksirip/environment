@@ -2,18 +2,23 @@
 # bash-completion@2 requires bash >= 4.1; without this, tab completions that
 # rely on _get_comp_words_by_ref (e.g. podman) will not work correctly.
 # Guards:
-#   $- == *i*            – only re-exec for interactive shells
-#   TERM_PROGRAM         – skip in VS Code integrated terminal (sets TERM_PROGRAM=vscode)
-#   _ppid_comm           – skip when the parent process is a VS Code helper:
-#                            node, Electron, or any "Code Helper*" variant
-#                          (Container Tools shells are parented by "Code Helper (Plugin)")
-#   BASH_PROFILE_REEXEC  – prevent infinite loops
+#   $- == *i*               – only re-exec for interactive shells
+#   TERM_PROGRAM            – skip in VS Code integrated terminal (sets TERM_PROGRAM=vscode)
+#   ELECTRON_RUN_AS_NODE    – skip when running inside any Electron/VS Code subprocess;
+#                             VS Code sets ELECTRON_RUN_AS_NODE=1 on Code Helper processes
+#                             and it is inherited by all descendants (including shells
+#                             spawned via /bin/sh intermediaries)
+#   _ppid_comm              – secondary guard: skip when the immediate parent comm
+#                             contains "node", "Electron", or "Code Helper" (substring
+#                             match handles both bare names and full macOS binary paths)
+#   BASH_PROFILE_REEXEC     – prevent infinite loops
 _ppid_comm=$(ps -o comm= -p "$PPID" 2>/dev/null || true)
 if (( BASH_VERSINFO[0] < 4 )) && [[ $- == *i* ]] \
         && [[ "${TERM_PROGRAM:-}" != "vscode" ]] \
-        && [[ "${_ppid_comm}" != "node" ]] \
-        && [[ "${_ppid_comm}" != "Electron" ]] \
-        && [[ "${_ppid_comm}" != Code\ Helper* ]] \
+        && [[ -z "${ELECTRON_RUN_AS_NODE:-}" ]] \
+        && [[ "${_ppid_comm}" != *"node"* ]] \
+        && [[ "${_ppid_comm}" != *"Electron"* ]] \
+        && [[ "${_ppid_comm}" != *"Code Helper"* ]] \
         && [[ -x /opt/homebrew/bin/bash ]] \
         && [[ -z "${BASH_PROFILE_REEXEC:-}" ]]; then
     unset _ppid_comm
