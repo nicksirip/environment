@@ -1,16 +1,3 @@
-# Re-exec with Homebrew bash when running under the macOS system bash (3.2)
-# in an interactive session. bash-completion@2 requires bash >= 4.1; without
-# this, tab completions that rely on _get_comp_words_by_ref (e.g. podman) will
-# not work correctly. The interactive check avoids re-exec for non-interactive
-# shells (e.g. VS Code extensions) where exec -l can cause unexpected failures.
-# BASH_PROFILE_REEXEC guards against infinite loops if the Homebrew bash is
-# somehow also older than version 4.
-if (( BASH_VERSINFO[0] < 4 )) && [[ $- == *i* ]] && [[ -x /opt/homebrew/bin/bash ]] \
-        && [[ -z "${BASH_PROFILE_REEXEC:-}" ]]; then
-    export BASH_PROFILE_REEXEC=1
-    exec -l /opt/homebrew/bin/bash
-fi
-
 # Homebrew
 export HOMEBREW_PREFIX="/opt/homebrew";
 export HOMEBREW_CELLAR="/opt/homebrew/Cellar";
