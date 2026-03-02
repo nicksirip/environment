@@ -27,9 +27,15 @@ if (( BASH_VERSINFO[0] < 4 )) && [[ $- == *i* ]] \
     exec -l /opt/homebrew/bin/bash
 fi
 unset _ppid_comm
-# Clear the re-exec flag so processes launched from this shell (e.g. tmux panes)
-# are not prevented from re-exec'ing into Homebrew bash themselves.
+# Clear the re-exec flag (belt-and-suspenders for login-shell descendants).
 unset BASH_PROFILE_REEXEC
+# Update $SHELL to the running bash so every program that inherits the
+# environment — most importantly tmux, which uses $SHELL to spawn pane
+# shells — gets Homebrew bash rather than the macOS system bash 3.2.
+# tmux panes are non-login shells and never source .bash_profile, so the
+# re-exec block above cannot help them; updating $SHELL here is the only
+# reliable way to ensure they start under the correct bash.
+export SHELL="${BASH}"
 
 # Homebrew
 export HOMEBREW_PREFIX="/opt/homebrew";
