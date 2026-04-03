@@ -83,7 +83,7 @@ fi
 
 # Tools
 if command -v atuin &>/dev/null; then
-    [[ -f "$HOMEBREW_PREFIX/etc/profile.d/bash-preexec.sh" ]] && . "$HOMEBREW_PREFIX/etc/profile.d/bash-preexec.sh"
+    [[ -n "${HOMEBREW_PREFIX:-}" ]] && [[ -f "$HOMEBREW_PREFIX/etc/profile.d/bash-preexec.sh" ]] && . "$HOMEBREW_PREFIX/etc/profile.d/bash-preexec.sh"
     eval "$(atuin init bash)"
 fi
 
