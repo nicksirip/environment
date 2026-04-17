@@ -87,8 +87,7 @@ fi
 # Do not auto-enter tmux in VS Code integrated terminals.
 if [ -z "$TMUX" ] && [ "${TERM_PROGRAM:-}" != "vscode" ]; then
     # Avoid locale issues in tmux unless explicitly set later.
-    unset LC_ALL
-    tmux new -t default || tmux new -s default
+    env -u LC_ALL tmux new -t default || env -u LC_ALL tmux new -s default
 fi
 
 fi # end interactive-only settings
