@@ -1,6 +1,53 @@
 # environment
 This is my MBP setup.
 
+## Quick Start
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/nicksirip/mac-environment.git ~/.mac-environment
+cd ~/.mac-environment
+
+# 2. Install all required Homebrew packages
+brew bundle
+
+# 3. Symlink dotfiles into $HOME
+./install.sh
+
+# 4. Reload your shell
+source ~/.bash_profile
+```
+
+---
+
+## Brewfile
+
+The `Brewfile` lists every Homebrew package required by this setup. Use it to install all dependencies in one command:
+
+```bash
+brew bundle
+```
+
+To verify everything is installed:
+
+```bash
+brew bundle check
+```
+
+---
+
+## install.sh
+
+`install.sh` automates dotfile installation by creating symlinks from `$HOME` to the files in this repository. Any existing file is backed up with a `.bak` suffix before it is replaced.
+
+```bash
+./install.sh
+```
+
+The script is idempotent — running it multiple times is safe.
+
+---
+
 ## Shell Requirement: Bash ≥ 4
 
 macOS ships with **bash 3.2** (GNU bash, version 3.2.x), which is too old for `bash-completion@2` and the tab-completion scripts in this repository.  `bash-completion@2` requires **bash ≥ 4.1**; without it, helpers such as `_get_comp_words_by_ref` are never defined and completions (e.g. `podman <TAB>`) fail.
